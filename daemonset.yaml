@@ -42,22 +42,24 @@ metadata:
   name: node-removal
   namespace: tnr-system
 ---
-apiVersion: apps/v1
-kind: DaemonSet
+apiVersion: batch/v1
+kind: CronJob
 metadata:
   name: terminated-node-removal
   namespace: tnr-system
 spec:
-  selector:
-    matchLabels:
-      name: terminated-node-removal
-  template:
-    metadata:
-      labels:
-        name: terminated-node-removal
+  schedule: "0/1 * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Replace
+  jobTemplate:
     spec:
-      serviceAccount: node-removal
-      serviceAccountName: node-removal
-      containers:
-      - name: terminated-node-removal
-        image: annavarsatish/node-removal:1.5
+      parallelism: 1
+      template:
+        spec:
+          serviceAccount: node-removal
+          serviceAccountName: node-removal
+          restartPolicy: Never
+          containers:
+          - name: terminated-node-removal
+            image: annavarsatish/node-removal:1.7-while
